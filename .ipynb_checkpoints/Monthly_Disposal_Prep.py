@@ -1,23 +1,6 @@
 
 import pandas as pd
 
-#Requistion import
-reqdets = pd.read_excel("WorkdayReqDetail_Darre.xlsx", sheet_name= "Nov 2022", header= 5)
-
-memo = reqdets["Memo"]
-
-reqdets.columns
-
-
-
-#age Regex utilizing lookahead assertions, x(?=y)
-memodf= pd.DataFrame(memo.str.extract(r'([\w]?[\w](?=(\s+)?[yY](ea)?rs?))'))
-
-pd.set_option('display.max_rows', memo.shape[0]+1)
-
-memodf.isna = "No Age"
-
-memodf =memodf.fillna("")
 
 #Wirting the ages on serperate sheet
 with pd.ExcelWriter("age.xlsx") as writer:
@@ -51,29 +34,58 @@ class AgeInterface(handlerInterface):
 
     name = "Age"
     
-
     @classmethod
     def cleanUp(cls, dataframe):
-        reqDetails = dataframe[memo]
-        cls.output = pd.DataFrame(reqDetails.str.extract(r'([\w]?[\w](?=(\s+)?[yY](ea)?rs?))'))
-        cls.output.isna = "No Age"
-        cls.output =memodf.fillna("")
-
+        try: 
+            reqDetails = dataframe['Memo']
+            cls.output = pd.DataFrame(reqDetails.str.extract(r'([\w]?[\w](?=(\s+)?[yY](ea)?rs?))'))
+            cls.output.isna = "No Age"
+            cls.output = cls.output.fillna("")
+            return cls.output
+        except KeyError as key:
+            print('Key Not Found in Age Interface', key)
+"""
+Spend Categories in the report
+     -HVAC
+     -Exterior Structure
+     -Plumbing
+     -Amenity Spaces
+     -Parking & Outdoor Storage
+     -Fire alarm/Sprinkler
+     -Electrical Systems
+"""
 class WTInterface(handlerInterface):
 
     name = "Welltower_OB"
 
     @classmethod
     def cleanUp(cls, dataframe):
-        pass
+        try:
+            marOBregex = re.compile("[Oo]pening|PPA(?!(\s\w+)?(\s|)?adjust)")
+            MarOBfilter = dataframe["Asset ID"].str.contains( marOBregex ,regex=True)
+            cls.output = dataframe[MarOBfilter]
+            cls.output = cls.output.pivot_table(index = ["Worktags", "Spend Category", "Asset ID", "Asset Status"])
+            return cls.output
+        except KeyError as key:
+            print('Key Not Found in WTInterface', key)
 
+"""
+To instaniated
 
+"""
 class Outputs(AgeInterface, WTInterface):
         
         def __init__(self, dataframe ):
             #taking into account mutlity inheritance
             self.ageDataframe  = AgeInterface.cleanUp(dataframe)
+            self.WTDataframe  = WTInterface.cleanUp(dataframe)
+            
 
+        def agePrinter(self):
+            AgeInterface.printer()
+
+        def WTPritner(self):
+            WTInterface.printer()
 
 #Idea is for this to work as a interface for other class to so it can take the functionailty of the dataframes
 #converts RFJL, Asset and Req xlsx to Dataframes 
@@ -85,8 +97,7 @@ class Inputs():
         def __init__(self):
                 self._dataframe = pd.DataFrame()
                
-
-       # @abstractmethod
+       #@abstractmethod
         @property
         def dataframe(self):
                 return self._dataframe
@@ -100,7 +111,7 @@ class Inputs():
                   raise ValueError("Pass an iterable with two items")
                 else:
                   link =  Inputs.monthStr +"2022.xlsx"
-                  self._dataframe = pd.read_excel(link, sheet_name=f"{Inputs.monthStr} 2022", header= 5) if type == "AGE"  else pd.read_excel(f"{file}.xlsx", sheet_name="Find Assets")
+                  self._dataframe = pd.read_excel(link, sheet_name=f"{Inputs.monthStr} 2022", header= 5) if type == "AGE"  else pd.read_excel(f"{file}.xlsx")
                         
                 
 
