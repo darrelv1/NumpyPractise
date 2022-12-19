@@ -8,7 +8,7 @@ memo = reqdets["Memo"]
 
 reqdets.columns
 
-import re
+
 
 #age Regex utilizing lookahead assertions, x(?=y)
 memodf= pd.DataFrame(memo.str.extract(r'([\w]?[\w](?=(\s+)?[yY](ea)?rs?))'))
@@ -25,29 +25,66 @@ with pd.ExcelWriter("age.xlsx") as writer:
 
 from abc import  ABC, abstractmethod
 from datetime import datetime
+import re
 
 
 class handlerInterface (ABC):
 
+    
+    name = "handlerInterface"
+    output = pd.DataFrame()
 
     @abstractmethod
     def cleanUp(): 
         pass
 
-    @abstractmethod
-    def printer():
-        pass 
+    @classmethod
+    def printer(cls):
+        link = "output/" + cls.name + ".xlsx"
+        with pd.ExcelWriter(link) as writer:
+            cls.output.to_excel(writer)
+        
+        
+
+#Define indiviudal processing to the input
+class AgeInterface(handlerInterface):
+
+    name = "Age"
+    
+
+    @classmethod
+    def cleanUp(cls, dataframe):
+        reqDetails = dataframe[memo]
+        cls.output = pd.DataFrame(reqDetails.str.extract(r'([\w]?[\w](?=(\s+)?[yY](ea)?rs?))'))
+        cls.output.isna = "No Age"
+        cls.output =memodf.fillna("")
+
+class WTInterface(handlerInterface):
+
+    name = "Welltower_OB"
+
+    @classmethod
+    def cleanUp(cls, dataframe):
+        pass
+
+
+class Outputs(AgeInterface, WTInterface):
+        
+        def __init__(self, dataframe ):
+            #taking into account mutlity inheritance
+            self.ageDataframe  = AgeInterface.cleanUp(dataframe)
+
 
 #Idea is for this to work as a interface for other class to so it can take the functionailty of the dataframes
 #converts RFJL, Asset and Req xlsx to Dataframes 
-class Inputs(ABC, handlerInterface): 
+class Inputs(): 
 
         monthDigit = datetime.now().month
         monthStr = datetime.now().strftime("%b")
 
         def __init__(self):
                 self._dataframe = pd.DataFrame()
-
+               
 
        # @abstractmethod
         @property
@@ -68,10 +105,7 @@ class Inputs(ABC, handlerInterface):
                 
 
 
-age = Inputs()
-age.dataframe = ("AGE","")
-marAsset = Inputs()
-marALLAsset.dataframe ("", "MAR_ALL")
+
 
 
 
