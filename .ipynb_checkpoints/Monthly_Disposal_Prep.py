@@ -2,25 +2,25 @@
 import pandas as pd
 
 
-#Wirting the ages on serperate sheet
-with pd.ExcelWriter("age.xlsx") as writer:
-        memodf.to_excel(writer)
+
 
 from abc import  ABC, abstractmethod
 from datetime import datetime
 import re
 
-
+#Generic Interface
 class handlerInterface (ABC):
 
     
     name = "handlerInterface"
     output = pd.DataFrame()
 
+    #Data Cleansing & Manpulation
     @abstractmethod
     def cleanUp(): 
         pass
-
+    
+    #Generic Panda Excel outstream
     @classmethod
     def printer(cls):
         link = "output/" + cls.name + ".xlsx"
@@ -29,11 +29,13 @@ class handlerInterface (ABC):
         
         
 
-#Define indiviudal processing to the input
+#Provides Class methods that cleanse data and extract the age number
 class AgeInterface(handlerInterface):
 
     name = "Age"
     
+
+    #Note that this method utilizes the class variable output to for it's dataframe 
     @classmethod
     def cleanUp(cls, dataframe):
         try: 
@@ -44,6 +46,9 @@ class AgeInterface(handlerInterface):
             return cls.output
         except KeyError as key:
             print('Key Not Found in Age Interface', key)
+
+
+
 """
 Spend Categories in the report
      -HVAC
@@ -54,6 +59,7 @@ Spend Categories in the report
      -Fire alarm/Sprinkler
      -Electrical Systems
 """
+#Provides Class methods that cleanse data to for Wellt
 class WTInterface(handlerInterface):
 
     name = "Welltower_OB"
@@ -69,9 +75,9 @@ class WTInterface(handlerInterface):
         except KeyError as key:
             print('Key Not Found in WTInterface', key)
 
-"""
-To instaniated
 
+"""
+To instaniated and implemented
 """
 class Outputs(AgeInterface, WTInterface):
         
@@ -87,8 +93,11 @@ class Outputs(AgeInterface, WTInterface):
         def WTPritner(self):
             WTInterface.printer()
 
-#Idea is for this to work as a interface for other class to so it can take the functionailty of the dataframes
-#converts RFJL, Asset and Req xlsx to Dataframes 
+"""
+Classifies xl files and converts them to objects that 
+can later be pass though to Output 
+and then be modified thorugh the interface extension.
+"""
 class Inputs(): 
 
         monthDigit = datetime.now().month
@@ -106,14 +115,44 @@ class Inputs():
         def dataframe(self, kind):
                 #Kind will take in a tuple
                 try: 
+                  #destructing a tuple
                   type, file = kind
                 except:
                   raise ValueError("Pass an iterable with two items")
                 else:
                   link =  Inputs.monthStr +"2022.xlsx"
-                  self._dataframe = pd.read_excel(link, sheet_name=f"{Inputs.monthStr} 2022", header= 5) if type == "AGE"  else pd.read_excel(f"{file}.xlsx")
+                  self._dataframe = (pd.read_excel(link, sheet_name=f"{Inputs.monthStr} 2022", header= 5) 
+                                    if type == "AGE"  
+                                    else pd.read_excel(f"{file}.xlsx"))
+
+
                         
-                
+"""
+
+        The req sheet will be the month and year eg.
+                         "Dec2022"
+
+The WT asset sheet will be user defined following this naming convention EG.
+             'WelltowerAssetData_(month&day)*nospaces*'
+
+"""
+def main():
+
+
+    reqdf = Inputs()
+    #set the in inflow stream  - tuple 
+    reqdf.dataframe = ('AGE', '')
+    age = Outputs(reqdf.dataframe)
+    age.output
+    age.agePrinter()
+
+    # wtdf = Inputs()
+    # #set the in inflow stream - tuple, 2nd
+    # wtdf.dataframe =('NOT AGE', 'WelltowerAssetData_1216')
+    # wtOB = Outputs(wtdf.dataframe)
+    # test = wtOB.WTDataframe
+    # wtOB.output
+    # wtOB.WTPritner()
 
 
 
