@@ -32,7 +32,7 @@ class handlerInterface (ABC):
 #Provides Class methods that cleanse data and extract the age number
 class AgeInterface(handlerInterface):
 
-    name = "Age"
+    name = "Age2"
     
 
     #Note that this method utilizes the class variable output to for it's dataframe 
@@ -50,6 +50,7 @@ class AgeInterface(handlerInterface):
 
 
 """
+
 Spend Categories in the report
      -HVAC
      -Exterior Structure
@@ -58,6 +59,10 @@ Spend Categories in the report
      -Parking & Outdoor Storage
      -Fire alarm/Sprinkler
      -Electrical Systems
+     -Roof
+     -Electrical Systems
+     -Plumbing
+
 """
 #Provides Class methods that cleanse data to for Wellt
 class WTInterface(handlerInterface):
@@ -94,9 +99,11 @@ class Outputs(AgeInterface, WTInterface):
             WTInterface.printer()
 
 """
+
 Classifies xl files and converts them to objects that 
 can later be pass though to Output 
 and then be modified thorugh the interface extension.
+
 """
 class Inputs(): 
 
@@ -138,33 +145,21 @@ The WT asset sheet will be user defined following this naming convention EG.
 """
 def main():
 
+    # #produces the output for ages
+    # reqdf = Inputs()
+    # #set the in inflow stream  - tuple 
+    # reqdf.dataframe = ('AGE', '')
+    # age = Outputs(reqdf.dataframe)
+    # age.output
+    # age.agePrinter()
 
-    reqdf = Inputs()
-    #set the in inflow stream  - tuple 
-    reqdf.dataframe = ('AGE', '')
-    age = Outputs(reqdf.dataframe)
-    age.output
-    age.agePrinter()
+    #produces the report of the cleansed data for the asset
+    wtdf = Inputs()
+    #set the in inflow stream - tuple, 2nd
+    wtdf.dataframe =('NOT AGE', 'AllAsset_0114')
+    wtOB = Outputs(wtdf.dataframe)
+    test = wtOB.WTDataframe
+    wtOB.output
+    wtOB.WTPritner()
 
-    # wtdf = Inputs()
-    # #set the in inflow stream - tuple, 2nd
-    # wtdf.dataframe =('NOT AGE', 'WelltowerAssetData_1216')
-    # wtOB = Outputs(wtdf.dataframe)
-    # test = wtOB.WTDataframe
-    # wtOB.output
-    # wtOB.WTPritner()
-
-
-
-
-
-
-
-
-
-    
-
-    
-
-
-
+main()
